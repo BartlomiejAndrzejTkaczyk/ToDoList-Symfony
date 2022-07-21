@@ -1,6 +1,15 @@
 <ul>
+        <?php phpinfo()  ?>
     {% for task in taskList %}
-        <li>{{ task.getName() }}</li>
+        <li>
+                {{ task.id }} =>
+                {{ task.name }} -
+                <a href="{{ path('main_del_task', {
+                        id: task.id
+                }) }}">
+                        del
+                </a>
+        </li>
 
     {% endfor %}
 </ul>

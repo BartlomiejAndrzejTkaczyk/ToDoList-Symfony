@@ -2,33 +2,70 @@
 
 namespace App\Controller;
 
-use App\Repository\Task\FakeTaskRepository;
-use App\Repository\Task\TaskRepositoryInterface;
+use App\Entity\Exception\WrongDateException;
+use App\Entity\TaskModel;
+use App\Repository\DatabaseAccess\DbAccessInterface;
+use App\Repository\DatabaseAccess\FakeDbAccess;
+use phpDocumentor\Reflection\Types\Self_;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class MainController extends AbstractController
 {
-    private TaskRepositoryInterface $tasks;
+    private static DbAccessInterface $dbAccess;
 
-    public function __construct()
+    public function __construct(LoggerInterface $logger)
     {
-        $this->tasks = new FakeTaskRepository();
+        self::$dbAccess = new FakeDbAccess($logger);
+
     }
 
     /**
-     * @throws \App\Entity\Exception\WrongDateException
+     * @throws WrongDateException
      */
-    #[Route('/')]
+    #[Route('/', name: 'main_index')]
     public function index(): Response
     {
-
         return $this->render(
             'to-do-list/task-list.html.twig',
             [
-                'taskList' => $this->tasks->getAll()
+                'taskList' => self::$dbAccess->getAllTask()
             ]
         );
+    }
+
+    /**
+     * @throws \Exception
+     */
+    #[Route('/del/{id}', name: 'main_del_task', requirements: ['id' => '\d+'])]
+    public function del($id): \Symfony\Component\HttpFoundation\RedirectResponse
+    {
+        self::$dbAccess->delTask($id);
+        return $this->redirectToRoute('main_index');
+    }
+
+    /**
+     * @throws WrongDateException
+     */
+    #[Route('/add/{name}')]
+    public function add(string $name): \Symfony\Component\HttpFoundation\RedirectResponse
+    {
+
+        // todo add try
+        self::$dbAccess->addTask(new TaskModel($name));
+        return $this->redirectToRoute('main_index');
+    }
+
+    #[Route('/edit/{id}/{name}', name: 'main_edit_task')]
+    public function edit(int $id, string $name) : Response
+    {
+        $code = self::$dbAccess->editTask($id, $name);
+        if ($code == 200){
+            return $this->redirectToRoute('main_index');
+        }
+        return new Response(status: $code);
     }
 }

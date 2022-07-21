@@ -9,61 +9,29 @@ use DateTime;
 
 class TaskModel
 {
-    private ?DateTime $creatDate;
+    private static int $nextId = 0;
+    public int $id;
+    public ?DateTime $creatDate;
     // can be null
-    private  ?DateTime $endDate;
-    private string $name;
-    private PriorityTask $priority;
+    public  ?DateTime $endDate;
+    public string $name;
+    public PriorityTask $priority;
 
     /**
      * @throws WrongDateException
+     * @throws \Exception
      */
     public function __construct(string $name , \DateTime $endDate = null, PriorityTask $priority = PriorityTask::Low)
     {
-//        $this->creatDate = \DateTime::createFromFormat(DATE_W3C ,date(DATE_W3C));
-        $this->creatDate = new DateTime(date(DATE_W3C));
+        $this->creatDate = new \DateTime(date(DATE_W3C));
 
         if($endDate != null && $endDate < $this->creatDate){
             throw new WrongDateException('end date can\'t be before create date');
         }
-        print 'a';
+
+        $this->id = self::$nextId++;
         $this->endDate = $endDate;
         $this->name = $name;
         $this->priority = $priority;
     }
-
-    /**
-     * @return string
-     */
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @return DateTime|null
-     */
-    public function getCreatDate(): ?DateTime
-    {
-        return $this->creatDate;
-    }
-
-    /**
-     * @return DateTime|null
-     */
-    public function getEndDate(): ?DateTime
-    {
-        return $this->endDate;
-    }
-
-    /**
-     * @return PriorityTask
-     */
-    public function getPriority(): PriorityTask
-    {
-        return $this->priority;
-    }
-
-
-
 }
