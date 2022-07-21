@@ -6,10 +6,8 @@ use App\Entity\Exception\WrongDateException;
 use App\Entity\TaskModel;
 use App\Repository\DatabaseAccess\DbAccessInterface;
 use App\Repository\DatabaseAccess\FakeDbAccess;
-use phpDocumentor\Reflection\Types\Self_;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -65,14 +63,14 @@ class MainController extends AbstractController
         return new Response($_POST['newName'] . ' ' . $id);
     }
 
-    #[Route('/edit', methods: ['GET'])]
-    public function edit()
+    #[Route('/edit/{id}', methods: ['GET'], name: "main_")]
+    public function edit($id)
     {
         return $this->render(
             'to-do-list/task-edit.html.twig',
             [
                 'name' => 'Nic',
-                'id' => 1
+                'id' => $id
             ]
         );
     }
