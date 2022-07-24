@@ -12,20 +12,17 @@ class FakeDbAccess implements DbAccessInterface
     private array $tasks;
 
 
-    /**
-     * @throws \App\Entity\Exception\WrongDateException
-     */
     public function __construct(
-        private LoggerInterface $logger
+        private readonly LoggerInterface $logger
     )
     {
-        $this->tasks = json_decode($this->readAllFile(self::PATH));
+        $this->tasks = json_decode($this->readAllFile());
     }
 
-    private function readAllFile(string $path): string
+    private function readAllFile(): string
     {
-        $file = fopen($path, "r");
-        $content = fread($file, filesize($path));
+        $file = fopen(self::PATH, "r");
+        $content = fread($file, filesize(self::PATH));
         fclose($file);
         return $content;
     }
@@ -50,9 +47,6 @@ class FakeDbAccess implements DbAccessInterface
         throw new \Exception("No task with $id");
     }
 
-    /**
-     * @throws \App\Entity\Exception\WrongDateException
-     */
     public function getAllTask(): array
     {
         return $this->tasks;
@@ -61,7 +55,7 @@ class FakeDbAccess implements DbAccessInterface
     /**
      * @throws \Exception
      */
-    public function delTask(int $id): void
+    public function deleteTask(int $id): void
     {
         unset(
             $this->tasks[$this->findIndexTaskById($id)]
@@ -69,9 +63,7 @@ class FakeDbAccess implements DbAccessInterface
         $this->save();
     }
 
-    /**
-     * @throws \App\Entity\Exception\WrongDateException
-     */
+
     public function addTask(TaskModel $taskModel): int
     {
         $this->tasks[] = $taskModel;

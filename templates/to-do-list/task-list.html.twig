@@ -1,12 +1,25 @@
-<ul>
-    <?php phpinfo()  ?>
-    {% for task in taskList %}
-        <li>
-            {{ task.id }} =>
-            {{ task.name }} -
-            <a href="{{ path('main_del_task', { id: task.id }) }}"> del </a>
-            <a href="{{ path('main_del_task', { id: task.id }) }}"> del </a>
-        </li>
+{% extends 'base.html.twig' %}
 
-    {% endfor %}
-</ul>
+{% block title %} List of Task {% endblock %}
+
+{% block body %}
+
+    <ul >
+
+        {% for task in taskList %}
+            <li class="task-list">
+                {{ task.name }} -
+                <a class="delete" href="{{ path('app_task_delete', { id: task.id }) }}">
+                    <span class="material-symbols-outlined">delete</span>
+                </a>
+
+                <a class="update" href="{{ path('app_task_update', task.id) }}">
+                    <span class="material-symbols-outlined">edit</span>
+                </a>
+
+            </li>
+
+        {% endfor %}
+    </ul>
+
+{% endblock %}

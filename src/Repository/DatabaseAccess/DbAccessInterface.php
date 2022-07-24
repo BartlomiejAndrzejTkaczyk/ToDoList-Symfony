@@ -6,6 +6,6 @@ interface DbAccessInterface
 {
     public function getAllTask(): array;
 
-    public function delTask(int $id);
+    public function deleteTask(int $id);
 
 }
