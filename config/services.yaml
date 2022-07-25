@@ -22,3 +22,11 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Repository\DatabaseAccess\FakeDbAccess:
+        arguments:
+            - '%kernel.project_dir%\src\Res\Tasks.json'
+
+    App\Controller\TaskController:
+        arguments:
+            - '@App\Repository\DatabaseAccess\FakeDbAccess'
