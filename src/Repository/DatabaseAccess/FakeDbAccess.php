@@ -2,21 +2,35 @@
 
 namespace App\Repository\DatabaseAccess;
 
+use App\Entity\TaskJsonModel;
 use App\Entity\TaskModel;
 use App\Utils\PriorityTask;
-use Psr\Log\LoggerInterface;
+
 
 class FakeDbAccess implements DbAccessInterface
 {
-    const PATH = '/var/www/html/ToDoList/src/Res/Tasks.json';
+    const PATH = 'C:\Users\Piter\OneDrive\Dokumenty\Bartek\staz\ToDoList-Symfony\src\Res\Tasks.json';
     private array $tasks;
 
 
-    public function __construct(
-        private readonly LoggerInterface $logger
-    )
+    /**
+     * @throws \App\Entity\Exception\WrongDateException
+     */
+    public function __construct()
     {
-        $this->tasks = json_decode($this->readAllFile());
+        $this->tasks = [];
+        foreach (json_decode($this->readAllFile()) as $ele) {
+            $this->tasks[] = new TaskModel(
+                id: $ele->id,
+                name: $ele->name,
+                creatDate: new \DateTime(datetime: $ele->creatDate->date),
+                priority: PriorityTask::fromInt($ele->priority),
+            );
+            if ($ele->endDate->date ?? false) {
+                end($this->tasks)->setEndDate(new \DateTime(datetime: $ele->endDate->date));
+            }
+        }
+        $this->save();
     }
 
     private function readAllFile(): string
@@ -27,10 +41,17 @@ class FakeDbAccess implements DbAccessInterface
         return $content;
     }
 
-    private function save(): void
+    public function save(): void
     {
+        if (count($this->tasks) == 0) {
+            return;
+        }
         $this->tasks = array_values($this->tasks);
-        file_put_contents(self::PATH, json_encode($this->tasks));
+        $tasksTemp = [];
+        foreach ($this->tasks as $key => $task) {
+            $tasksTemp[$key] = new TaskJsonModel($task);
+        }
+        file_put_contents(self::PATH, json_encode($tasksTemp));
     }
 
     private function findIndexTaskById(int $id): int
@@ -40,7 +61,7 @@ class FakeDbAccess implements DbAccessInterface
          * @var TaskModel $task
          */
         foreach ($this->tasks as $key => $task) {
-            if ($task->id == $id) {
+            if ($task->getId() == $id) {
                 return $key;
             }
         }
@@ -64,14 +85,15 @@ class FakeDbAccess implements DbAccessInterface
     }
 
 
-    public function addTask(TaskModel $taskModel): int
+    public function addTask(TaskModel $taskModel): void
     {
         $this->tasks[] = $taskModel;
-        $this->logger->info("Add task $taskModel->name with id=$taskModel->id");
         $this->save();
-        return 200;
     }
 
+    /**
+     * @throws \Exception
+     */
     public function editTask(int $id, string $name): int
     {
         $index = $this->findIndexTaskById($id);
@@ -79,10 +101,34 @@ class FakeDbAccess implements DbAccessInterface
         /** @var TaskModel $task */
         $task = $this->tasks[$index];
 
-        $task->name = $name;
+        $task->setName($name);
 
         $this->save();
 
         return 200;
     }
+
+    /**
+     * @throws \Exception
+     */
+    public function getTaskById(int $id): TaskModel
+    {
+        return $this->tasks[$this->findIndexTaskById($id)];
+    }
+
+    /**
+     * @throws \App\Entity\Exception\WrongDateException
+     */
+    public function createTaskTemplate(): TaskModel
+    {
+        $max = 0;
+        /** @var TaskModel $task */
+        foreach ($this->tasks as $task) {
+            if ($max < $task->getId()) {
+                $max = $task->getId();
+            }
+        }
+        return new TaskModel($max, '', new \DateTime());
+    }
+
 }

@@ -4,7 +4,7 @@
 
 {% block body %}
 
-    <ul >
+    <ul style="list-style-type: none">
 
         {% for task in taskList %}
             <li class="task-list">
@@ -13,7 +13,7 @@
                     <span class="material-symbols-outlined">delete</span>
                 </a>
 
-                <a class="update" href="{{ path('app_task_update', task.id) }}">
+                <a class="update" href="{{ path('app_task_update', {id: task.id}) }}">
                     <span class="material-symbols-outlined">edit</span>
                 </a>
 
