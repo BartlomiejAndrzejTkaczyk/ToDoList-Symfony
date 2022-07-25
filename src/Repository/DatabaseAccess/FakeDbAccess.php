@@ -48,9 +48,7 @@ class FakeDbAccess implements DbAccessInterface
     public
     function save(): void
     {
-        if (count($this->tasks) == 0) {
-            return;
-        }
+
         $this->tasks = array_values($this->tasks);
         $tasksTemp = [];
         foreach ($this->tasks as $key => $task) {
@@ -128,7 +126,7 @@ class FakeDbAccess implements DbAccessInterface
     }
 
     /**
-     * @throws \App\Entity\Exception\WrongDateException
+     * @throws WrongDateException
      */
     public
     function createTaskTemplate(): TaskModel

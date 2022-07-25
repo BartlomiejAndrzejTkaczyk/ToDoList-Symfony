@@ -24,7 +24,7 @@ class TaskController extends AbstractController
     #[Route('/', name: 'app_task_index')]
     public function index(): Response
     {
-
+        $a = 1;
         return $this->render(
             'to-do-list/task-list.html.twig',
             [
