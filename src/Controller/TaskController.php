@@ -4,17 +4,15 @@ namespace App\Controller;
 
 
 use App\Entity\Task;
-use App\Entity\User;
-use App\Form\Type\TaskType;
-use App\Query\TaskQuery;
+use App\Form\TaskType;
 use App\Repository\DatabaseAccess\DbAccessInterface;
 use App\Repository\TaskRepository;
 use App\Repository\UserRepository;
 use Exception;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -25,12 +23,11 @@ class TaskController extends AbstractController
 
     public function __construct(
         private readonly TaskRepository $taskRepository,
-//        private readonly TaskQuery $taskQuery
     )
     {
     }
 
-    #[Route('/', name: 'task_index')]
+    #[Route('/task', name: 'task_index')]
     public function index(UserInterface $user, UserRepository $userRepository): Response
     {
 
@@ -136,8 +133,8 @@ class TaskController extends AbstractController
         }
     }
 
-    #[Route("/update/", name: 'task_updatePost', methods: ['POST'])]
-    public function updatePost(Request $request): Response
+    #[Route("/update/{id}", name: 'task_updatePost', methods: ['POST'])]
+    public function updatePost(Request $request, int $id): Response
     {
         $task = new Task();
 
@@ -145,11 +142,11 @@ class TaskController extends AbstractController
             TaskType::class,
             $task
         );
-        dd($task);
+
         $form->handleRequest($request);
 
         try {
-            $this->taskRepository->update($task);
+            $this->taskRepository->update($task, $id);
         } catch (Exception $e) {
             return $this->render('exception-site.html.twig', ['exception' => $e]);
         }

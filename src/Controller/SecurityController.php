@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
@@ -29,5 +32,30 @@ class SecurityController extends AbstractController
     public function logout(): void
     {
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+    }
+
+    #[Route('/registration', name: 'app_registration')]
+    public function registration(UserPasswordHasherInterface $passwordHasher, ManagerRegistry $doctrine): Response
+    {
+
+
+
+        $user = new User();
+        $plainPassword = 'ala ma kota';
+
+        $hashedPassword = $passwordHasher->hashPassword(
+            $user,
+            $plainPassword
+        );
+
+        $user->setEmail('ala@gmail.com');
+        $user->setPassword($hashedPassword);
+
+        $entityManager = $doctrine->getManager();
+
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        return new Response('Add user with email=' . $user->getEmail());
     }
 }

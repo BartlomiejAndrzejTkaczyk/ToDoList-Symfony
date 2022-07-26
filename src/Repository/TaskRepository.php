@@ -35,7 +35,8 @@ class TaskRepository extends ServiceEntityRepository
     public function removeById(int $taskId)
     {
         $this->remove(
-            $this->find($taskId)
+            $this->find($taskId),
+            true
         );
     }
 
@@ -48,9 +49,9 @@ class TaskRepository extends ServiceEntityRepository
         }
     }
 
-    public function update(Task $task): void
+    public function update(Task $task, $taskId): void
     {
-        $dbTask = $this->find($task->getId());
+        $dbTask = $this->find($taskId);
 
         if (!$dbTask) {
             throw new NotFoundHttpException('Not found task with id = ' . $task->getId());

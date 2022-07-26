@@ -19,13 +19,15 @@ security:
                 #from login
                 from_login:
                     # "app_login" is the name of the route created previously
-                    login_path: _login
+                    login_path: security_login
                     check_path: security_login
                     enable_csrf: true
             #logout
             logout:
                 path: security_logout
             custom_authenticator: App\Security\AppCustomAuthenticator
+            #
+            entry_point: App\Security\AuthenticationEntryPoint
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
 

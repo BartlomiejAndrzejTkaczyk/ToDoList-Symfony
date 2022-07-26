@@ -3,33 +3,48 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use Doctrine\Persistence\ManagerRegistry;
+use App\Form\RegistrationFormType;
+use App\Repository\UserRepository;
+use App\Security\AppCustomAuthenticator;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class RegistrationController extends AbstractController
 {
-    #[Route('/registration', name: 'app_registration')]
-    public function index(UserPasswordHasherInterface $passwordHasher, ManagerRegistry $doctrine): Response
+    #[Route('/register', name: 'app_register')]
+    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, UserAuthenticatorInterface $userAuthenticator, AppCustomAuthenticator $authenticator, UserRepository $userRepository): Response
     {
         $user = new User();
-        $plainPassword = 'ala ma kota';
+        $form = $this->createForm(RegistrationFormType::class, $user);
+        $form->handleRequest($request);
 
-        $hashedPassword = $passwordHasher->hashPassword(
-            $user,
-            $plainPassword
-        );
+        if ($form->isSubmitted() && $form->isValid()) {
+            // encode the plain password
+            $user->setPassword(
+                $userPasswordHasher->hashPassword(
+                    $user,
+                    $form->get('plainPassword')->getData()
+                )
+            );
 
-        $user->setEmail('ala@gmail.com');
-        $user->setPassword($hashedPassword);
+            $userRepository->add($user, true);
+            // do anything else you need here, like send an email
 
-        $entityManager = $doctrine->getManager();
+            return $userAuthenticator->authenticateUser(
+                $user,
+                $authenticator,
+                $request
+            );
+        }
 
-        $entityManager->persist($user);
-        $entityManager->flush();
-
-        return new Response('Add user with email=' . $user->getEmail());
+        return $this->render('registration/register.html.twig', [
+            'registrationForm' => $form->createView(),
+        ]);
     }
 }

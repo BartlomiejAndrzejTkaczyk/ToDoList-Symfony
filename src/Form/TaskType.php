@@ -1,12 +1,9 @@
 <?php
 
-namespace App\Form\Type;
+namespace App\Form;
 
 use App\Entity\Task;
-
-
 use Symfony\Component\Form\AbstractType;
-
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -20,7 +17,8 @@ class TaskType extends AbstractType
     {
         $builder
             ->add('name', TextType::class)
-            ->add('endDate', DateTimeType::class, array( 'input' => 'datetime_immutable',))
+            ->add('endDate', DateTimeType::class, ['input' => 'datetime_immutable',])
+//            ->add('id', NumberType::class, ['attr' => ['class' => 'tinymce']]) todo
             ->add('save', SubmitType::class, [
                 'attr' => ['class' => 'save'],
             ]);
