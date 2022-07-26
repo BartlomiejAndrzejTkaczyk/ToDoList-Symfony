@@ -5,9 +5,10 @@ namespace App\Entity;
 use App\Entity\Exception\WrongDateException;
 use App\Utils\PriorityTask;
 use DateTime;
+use JetBrains\PhpStorm\Internal\TentativeType;
 
 
-class TaskModel
+class TaskModel implements \JsonSerializable
 {
 
     /**
@@ -110,4 +111,14 @@ class TaskModel
     }
 
 
+    public function jsonSerialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'creatDate' => $this->creatDate,
+            'endDate' => $this->endDate,
+            'priority' => $this->priority,
+        ];
+    }
 }

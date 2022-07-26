@@ -2,7 +2,7 @@
 
 {% block body %}
 
-    {{ form_start(form, {'action': path(destination, data), 'method': 'POST'}) }}
+    {{ form_start(form, {'action': path(destination, data ?? []), 'method': 'POST'}) }}
         {{ form_widget(form) }}
     {{ form_end(form) }}
 

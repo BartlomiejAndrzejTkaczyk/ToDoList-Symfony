@@ -60,7 +60,6 @@ class TaskController extends AbstractController
             'to-do-list/task-form.html.twig',
             [
                 'form' => $form->createView(),
-                'data' => [],
                 'destination' => 'app_task_addPost',
             ]
         );
@@ -94,7 +93,6 @@ class TaskController extends AbstractController
                 $this->dbAccess->getTaskById($id),
                 [
                     'action' => $this->generateUrl('app_task_updatePost', ['id' => $id]),
-                    'method' => 'POST',
                 ]
             );
 
@@ -108,7 +106,7 @@ class TaskController extends AbstractController
                 ]
             );
         } catch (Exception $e) {
-            return $this->render('exception-site.html.twig', ['e' => $e]);
+            return $this->render('exception-site.html.twig', ['exception' => $e]);
         }
     }
 
@@ -117,16 +115,18 @@ class TaskController extends AbstractController
     {
         try {
             $task = $this->dbAccess->getTaskById($id);
-            $form = $this->createForm(
-                TaskType::class,
-                $task
-            );
-            $form->handleRequest($request);
-            $this->dbAccess->save();
-
-            return $this->redirectToRoute('app_task_index');
         } catch (Exception $e) {
-            return $this->render('exception-site.html.twig', ['e' => $e]);
+            return $this->render('exception-site.html.twig', ['exception' => $e]);
         }
+
+
+        $form = $this->createForm(
+            TaskType::class,
+            $task
+        );
+        $form->handleRequest($request);
+        $this->dbAccess->save();
+
+        return $this->redirectToRoute('app_task_index');
     }
 }

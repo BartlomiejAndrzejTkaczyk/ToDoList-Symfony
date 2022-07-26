@@ -10,6 +10,7 @@ use App\Utils\PriorityTask;
 
 class FakeDbAccess implements DbAccessInterface
 {
+    /** @var TaskModel[] */
     private array $tasks;
 
 
@@ -26,8 +27,9 @@ class FakeDbAccess implements DbAccessInterface
             $this->tasks[] = new TaskModel(
                 id: $ele->id,
                 name: $ele->name,
-                creatDate: new \DateTime(datetime: $ele->creatDate->date),
-                priority: PriorityTask::fromInt($ele->priority),
+                creatDate: new \DateTimeImmutable(datetime: $ele->creatDate->date),
+//                priority: PriorityTask::fromInt($ele->priority),
+                priority: PriorityTask::tryFrom($ele->priority),
             );
             if ($ele->endDate->date ?? false) {
                 end($this->tasks)->setEndDate(new \DateTime(datetime: $ele->endDate->date));
@@ -101,8 +103,7 @@ class FakeDbAccess implements DbAccessInterface
     /**
      * @throws \Exception
      */
-    public
-    function editTask(int $id, string $name): int
+    public function editTask(int $id, string $name): int
     {
         $index = $this->findIndexTaskById($id);
 
@@ -119,8 +120,7 @@ class FakeDbAccess implements DbAccessInterface
     /**
      * @throws \Exception
      */
-    public
-    function getTaskById(int $id): TaskModel
+    public function getTaskById(int $id): TaskModel
     {
         return $this->tasks[$this->findIndexTaskById($id)];
     }
@@ -128,8 +128,7 @@ class FakeDbAccess implements DbAccessInterface
     /**
      * @throws WrongDateException
      */
-    public
-    function createTaskTemplate(): TaskModel
+    public function createTaskTemplate(): TaskModel
     {
         $max = 0;
         /** @var TaskModel $task */
