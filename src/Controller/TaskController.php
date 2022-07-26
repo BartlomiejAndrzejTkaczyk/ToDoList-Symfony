@@ -24,7 +24,7 @@ class TaskController extends AbstractController
 
     }
 
-    #[Route('/', name: 'app_task_index')]
+    #[Route('/', name: 'task_index')]
     public function index(): Response
     {
         dump($this->getUser()->getRoles());
@@ -37,15 +37,15 @@ class TaskController extends AbstractController
     }
 
 
-    #[Route('/delete/{id}', name: 'app_task_delete', requirements: ['id' => '\d+'])]
+    #[Route('/delete/{id}', name: 'task_delete', requirements: ['id' => '\d+'])]
     public function delete($id): Response
     {
         $this->dbAccess->deleteTask($id);
-        return $this->redirectToRoute('app_task_index');
+        return $this->redirectToRoute('task_index');
     }
 
 
-    #[Route('/add/', name: 'app_task_add', methods: ['GET'])]
+    #[Route('/add/', name: 'task_add', methods: ['GET'])]
     public function add(): Response
     {
         $task = $this->dbAccess->createTaskTemplate();
@@ -53,7 +53,7 @@ class TaskController extends AbstractController
             TaskType::class,
             $task,
             [
-                'action' => $this->generateUrl('app_task_addPost'),
+                'action' => $this->generateUrl('task_addPost'),
                 'method' => 'POST',
             ]
         );
@@ -63,12 +63,12 @@ class TaskController extends AbstractController
             'to-do-list/task-form.html.twig',
             [
                 'form' => $form->createView(),
-                'destination' => 'app_task_addPost',
+                'destination' => 'task_addPost',
             ]
         );
     }
 
-    #[Route('/add/', name: 'app_task_addPost', methods: ['POST'])]
+    #[Route('/add/', name: 'task_addPost', methods: ['POST'])]
     public function addPost(Request $request): Response
     {
         try {
@@ -80,13 +80,13 @@ class TaskController extends AbstractController
             $form->handleRequest($request);
             $this->dbAccess->addTask($task);
 
-            return $this->redirectToRoute('app_task_index');
+            return $this->redirectToRoute('task_index');
         } catch (Exception $e) {
             return $this->render('exception-site.html.twig', ['e' => $e]);
         }
     }
 
-    #[Route('/update/{id}', name: "app_task_update", methods: ['GET'])]
+    #[Route('/update/{id}', name: "task_update", methods: ['GET'])]
     public function update($id): Response
     {
 
@@ -95,7 +95,7 @@ class TaskController extends AbstractController
                 TaskType::class,
                 $this->dbAccess->getTaskById($id),
                 [
-                    'action' => $this->generateUrl('app_task_updatePost', ['id' => $id]),
+                    'action' => $this->generateUrl('task_updatePost', ['id' => $id]),
                 ]
             );
 
@@ -105,7 +105,7 @@ class TaskController extends AbstractController
                 [
                     'form' => $form->createView(),
                     'data' => ['id' => $id],
-                    'destination' => 'app_task_updatePost'
+                    'destination' => 'task_updatePost'
                 ]
             );
         } catch (Exception $e) {
@@ -113,7 +113,7 @@ class TaskController extends AbstractController
         }
     }
 
-    #[Route("/update/{id}", name: 'app_task_updatePost', methods: ['POST'])]
+    #[Route("/update/{id}", name: 'task_updatePost', methods: ['POST'])]
     public function updatePost(int $id, Request $request): Response
     {
         try {
@@ -130,6 +130,6 @@ class TaskController extends AbstractController
         $form->handleRequest($request);
         $this->dbAccess->save();
 
-        return $this->redirectToRoute('app_task_index');
+        return $this->redirectToRoute('task_index');
     }
 }
