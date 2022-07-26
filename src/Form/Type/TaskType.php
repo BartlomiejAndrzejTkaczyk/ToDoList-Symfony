@@ -2,11 +2,12 @@
 
 namespace App\Form\Type;
 
-use App\Entity\TaskModel;
-use App\Utils\PriorityTask;
+use App\Entity\Task;
+
+
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
-use Symfony\Component\Form\Extension\Core\Type\EnumType;
+
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -19,8 +20,7 @@ class TaskType extends AbstractType
     {
         $builder
             ->add('name', TextType::class)
-            ->add('endDate', DateType::class)
-            ->add('priority', EnumType::class, ['class' => PriorityTask::class])
+            ->add('endDate', DateTimeType::class, array( 'input' => 'datetime_immutable',))
             ->add('save', SubmitType::class, [
                 'attr' => ['class' => 'save'],
             ]);
@@ -29,7 +29,7 @@ class TaskType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => TaskModel::class,
+            'data_class' => Task::class,
         ]);
     }
 

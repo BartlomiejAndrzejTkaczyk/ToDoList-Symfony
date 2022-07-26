@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Task;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use function Amp\Dns\createDefaultResolver;
 
 /**
@@ -31,6 +32,13 @@ class TaskRepository extends ServiceEntityRepository
         }
     }
 
+    public function removeById(int $taskId)
+    {
+        $this->remove(
+            $this->find($taskId)
+        );
+    }
+
     public function remove(Task $entity, bool $flush = false): void
     {
         $this->getEntityManager()->remove($entity);
@@ -40,12 +48,28 @@ class TaskRepository extends ServiceEntityRepository
         }
     }
 
-//    public function findByUser(int $userId)
-//    {
-//        return $this
-//            ->createQueryBuilder('t')
-//            ->where('t.user.id == :id')
-//    }
+    public function update(Task $task): void
+    {
+        $dbTask = $this->find($task->getId());
+
+        if (!$dbTask) {
+            throw new NotFoundHttpException('Not found task with id = ' . $task->getId());
+        }
+
+        $dbTask->setName($task->getName());
+
+        $this->getEntityManager()->flush(); // todo zmien na _em jesli bedzie dzialac
+    }
+
+    public function findByUser(string $userId)
+    {
+        return $this
+            ->createQueryBuilder('t')
+            ->where('t.user = :id')
+            ->setParameter('id', $userId)
+            ->getQuery()
+            ->getResult();
+    }
 
 //    /**
 //     * @return Task[] Returns an array of Task objects
