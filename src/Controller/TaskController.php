@@ -9,8 +9,11 @@ use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Routing\Annotation\Route;
 
+
+#[IsGranted('ROLE_USER')]
 class TaskController extends AbstractController
 {
 
@@ -24,7 +27,7 @@ class TaskController extends AbstractController
     #[Route('/', name: 'app_task_index')]
     public function index(): Response
     {
-        $a = 1;
+        dump($this->getUser()->getRoles());
         return $this->render(
             'to-do-list/task-list.html.twig',
             [
