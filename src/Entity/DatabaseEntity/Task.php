@@ -3,6 +3,7 @@
 namespace App\Entity\DatabaseEntity;
 
 use App\Repository\TaskRepository;
+use App\Utils\TaskStatus;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
@@ -26,9 +27,14 @@ class Task
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $isFinish = null;
+
     public function __construct()
     {
         $this->createAt = new \DateTimeImmutable();
+        $this->setStatus(TaskStatus::active);
     }
 
     public function getId(): ?int
@@ -84,7 +90,27 @@ class Task
         return $this;
     }
 
-    public function setModifiedAt()
+    public function getStatus(): ?TaskStatus
     {
+        return TaskStatus::from($this->status);
+    }
+
+    public function setStatus(TaskStatus $status): self
+    {
+        $this->status = $status->value;
+
+        return $this;
+    }
+
+    public function isIsFinish(): ?bool
+    {
+        return $this->isFinish;
+    }
+
+    public function setIsFinish(bool $isFinish): self
+    {
+        $this->isFinish = $isFinish;
+
+        return $this;
     }
 }

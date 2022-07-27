@@ -4,22 +4,47 @@
 
 {% block body %}
 
-    <ul style="list-style-type: none">
+    <div>
+        <ul style="list-style-type: none">
+            {% for activeTask in activeTaskList %}
+                <li class="task-list">
+                    {{ activeTask.name }} -
+                    <a class="delete" href="{{ path('task_delete', {userId: userId, taskId: activeTask.id}) }}">
+                        <span class="material-symbols-outlined">delete</span>
+                    </a>
 
-        {% for task in taskList %}
-            <li class="task-list">
-                {{ task.name }} -
-                <a class="delete" href="{{ path('task_delete', {userId: userId, taskId: task.id}) }}">
-                    <span class="material-symbols-outlined">delete</span>
-                </a>
+                    <a class="update" href="{{ path('task_update', {userId: userId, taskId: activeTask.id}) }}">
+                        <span class="material-symbols-outlined">edit</span>
+                    </a>
 
-                <a class="update" href="{{ path('task_update', {userId: userId, taskId: task.id}) }}">
-                    <span class="material-symbols-outlined">edit</span>
-                </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
 
-            </li>
+    <div style="background: #27333A">
+        <ul>
 
-        {% endfor %}
-    </ul>
+            {% for finishTask in finishTaskList %}
+                <li class="task-list">
+                    {{ finishTask.name }} -
+                    <a class="delete" href="{{ path('task_delete', {userId: userId, taskId: finishTask.id}) }}">
+                        <span class="material-symbols-outlined">delete</span>
+                    </a>
+
+                    <a class="update" href="{{ path('task_update', {userId: userId, taskId: finishTask.id}) }}">
+                        <span class="material-symbols-outlined">edit</span>
+                    </a>
+
+                    {% if finishTask.isFinish == false %}
+                        <a href="#">
+                            <span>'koniec gry</span>
+                        </a>
+                    {% endif %}
+
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
 
 {% endblock %}

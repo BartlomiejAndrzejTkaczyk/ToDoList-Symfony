@@ -27,6 +27,7 @@ class DbalTaskQuery
             ->addSelect('t.name')
             ->addSelect('t.end_date')
             ->addSelect('t.user_id')
+            ->addSelect('t.status')
             ->from('task', 't')
             ->where(
                 $qb->expr()->eq('t.id', ':id')
@@ -66,6 +67,7 @@ class DbalTaskQuery
             ->addSelect('t.name')
             ->addSelect('t.end_date')
             ->addSelect('t.user_id')
+            ->addSelect('t.is_finish')
             ->from('task', 't')
             ->where(
                 $qb->expr()->eq('t.user_id', ':userId')

@@ -3,15 +3,19 @@
 namespace App\Entity\DTOEntity;
 
 use App\Entity\DatabaseEntity\Task;
+use App\Utils\TaskStatus;
 
 class TaskChange
 {
     private int $id;
     private string $name;
     private \DateTimeImmutable $endDate;
+    private bool $isFinish;
 
     private int $userId;
     private string $email;
+
+
 
     /**
      * @throws \Exception
@@ -24,19 +28,15 @@ class TaskChange
         $task->setName($dbal['name']);
         $task->setEndDate(new \DateTimeImmutable( $dbal['end_date']) );
         $task->setUserId($dbal['user_id'] );
+        $task->setIsFinish(
+            $dbal['is_finish']
+        );
         return $task;
     }
 
-
-    public function castToTask()
+    public function __construct()
     {
-        $task = new Task();
-
-
-        $this->name ?? $task->setName($this->name);
-        $this->endDate ?? $task->setEndDate($this->endDate);
-        $this->userId ?? $task->setUserId($this->userId);
-
+        $this->setEndDate(new \DateTimeImmutable());
     }
 
     /**
@@ -118,6 +118,40 @@ class TaskChange
     {
         $this->endDate = $endDate;
     }
+
+
+    /**
+     * @return TaskStatus
+     */
+    public function getStatus(): TaskStatus
+    {
+        return $this->status;
+    }
+
+    /**
+     * @param TaskStatus $status
+     */
+    public function setStatus(TaskStatus $status): void
+    {
+        $this->status = $status;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isFinish(): bool
+    {
+        return $this->isFinish;
+    }
+
+    /**
+     * @param bool $isFinish
+     */
+    public function setIsFinish(bool $isFinish): void
+    {
+        $this->isFinish = $isFinish;
+    }
+
 
 
 }

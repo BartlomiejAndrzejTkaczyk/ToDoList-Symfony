@@ -12,6 +12,7 @@ use App\Query\DbalTaskQuery;
 use App\Query\DbalUserQuery;
 use App\Repository\TaskRepository;
 use App\UseCase\UpdateTaskUseCase;
+use App\Utils\FilterArray;
 use Exception;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -37,15 +38,20 @@ class TaskController extends AbstractController
     public function index(): Response
     {
         $email = $this->getUser()->getUserIdentifier();
+        $taskList = $this->taskQuery->findAllByUserEmail($email);
+
+
         try {
             return $this->render(
                 'to-do-list/task-list.html.twig',
                 [
-                    'taskList' => $this->taskQuery->findAllByUserEmail($email),
+                    'activeTaskList' => array_filter($taskList, 'App\Utils\FilterArray::isActive'),
+                    'finishTaskList' => array_filter($taskList, 'App\Utils\FilterArray::isFinish'),
                     'userId' => $this->userQuery->findIdByEmail($email),
                 ]
             );
         } catch (Exception $exception) {
+            throw $exception;
             return $this->render('exception-site.html.twig', ['str' => $exception->getMessage()]);
         }
     }
