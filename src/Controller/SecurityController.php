@@ -2,8 +2,9 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
+use App\Entity\DatabaseEntity\User;
 use Doctrine\Persistence\ManagerRegistry;
+use LogicException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -31,7 +32,7 @@ class SecurityController extends AbstractController
     #[Route(path: '/logout', name: 'security_logout')]
     public function logout(): void
     {
-        throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+        throw new LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
 
     #[Route('/registration', name: 'app_registration')]

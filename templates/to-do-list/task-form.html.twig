@@ -4,6 +4,7 @@
 
     {{ form_start(form, {'action': path(destination, data ?? []), 'method': 'POST'}) }}
         {{ form_widget(form) }}
+    <button type="submit">Submit</button>
     {{ form_end(form) }}
 
 {% endblock %}

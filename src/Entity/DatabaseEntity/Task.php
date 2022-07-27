@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\DatabaseEntity;
 
 use App\Repository\TaskRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -25,6 +25,11 @@ class Task
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
+
+    public function __construct()
+    {
+        $this->createAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -77,5 +82,9 @@ class Task
         $this->user = $user;
 
         return $this;
+    }
+
+    public function setModifiedAt()
+    {
     }
 }

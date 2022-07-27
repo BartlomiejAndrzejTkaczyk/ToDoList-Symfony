@@ -9,11 +9,11 @@
         {% for task in taskList %}
             <li class="task-list">
                 {{ task.name }} -
-                <a class="delete" href="{{ path('task_delete', { id: task.id }) }}">
+                <a class="delete" href="{{ path('task_delete', {userId: userId, taskId: task.id}) }}">
                     <span class="material-symbols-outlined">delete</span>
                 </a>
 
-                <a class="update" href="{{ path('task_update', {id: task.id}) }}">
+                <a class="update" href="{{ path('task_update', {userId: userId, taskId: task.id}) }}">
                     <span class="material-symbols-outlined">edit</span>
                 </a>
 

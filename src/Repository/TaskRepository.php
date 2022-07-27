@@ -2,11 +2,11 @@
 
 namespace App\Repository;
 
-use App\Entity\Task;
+use App\Entity\DatabaseEntity\Task;
+use App\Entity\DTOEntity\TaskChange;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use function Amp\Dns\createDefaultResolver;
 
 /**
  * @extends ServiceEntityRepository<Task>
@@ -18,7 +18,10 @@ use function Amp\Dns\createDefaultResolver;
  */
 class TaskRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(
+        ManagerRegistry                 $registry,
+        private readonly UserRepository $userRepository //todo
+    )
     {
         parent::__construct($registry, Task::class);
     }
@@ -30,6 +33,19 @@ class TaskRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    public function createFromTaskChange(TaskChange $taskChange)
+    {
+        $task = new Task();
+
+        $task->setName($taskChange->getName());
+        $task->setEndDate($taskChange->getEndDate());
+        $task->setUser(
+            $this->userRepository->find($taskChange->getUserId())
+        );
+
+        $this->add($task, true);
     }
 
     public function removeById(int $taskId)
@@ -49,6 +65,11 @@ class TaskRepository extends ServiceEntityRepository
         }
     }
 
+    public function flush() //todo is this a good idea
+    {
+        $this->getEntityManager()->flush();
+    }
+
     public function update(Task $task, $taskId): void
     {
         $dbTask = $this->find($taskId);
@@ -59,18 +80,9 @@ class TaskRepository extends ServiceEntityRepository
 
         $dbTask->setName($task->getName());
 
-        $this->getEntityManager()->flush(); // todo zmien na _em jesli bedzie dzialac
+        $this->_em->flush();
     }
 
-    public function findByUser(string $userId)
-    {
-        return $this
-            ->createQueryBuilder('t')
-            ->where('t.user = :id')
-            ->setParameter('id', $userId)
-            ->getQuery()
-            ->getResult();
-    }
 
 //    /**
 //     * @return Task[] Returns an array of Task objects

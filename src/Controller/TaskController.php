@@ -1,20 +1,23 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Controller;
 
 
-use App\Entity\Task;
+use App\Entity\DatabaseEntity\Task;
+use App\Entity\DTOEntity\TaskChange;
 use App\Form\TaskType;
-use App\Repository\DatabaseAccess\DbAccessInterface;
+use App\Form\TaskChangeType;
+use App\Query\DbalTaskQuery;
+use App\Query\DbalUserQuery;
 use App\Repository\TaskRepository;
-use App\Repository\UserRepository;
+use App\UseCase\UpdateTaskUseCase;
 use Exception;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 
 #[IsGranted('ROLE_USER')]
@@ -22,36 +25,43 @@ class TaskController extends AbstractController
 {
 
     public function __construct(
-        private readonly TaskRepository $taskRepository,
+        private readonly TaskRepository    $taskRepository,
+        private readonly DbalTaskQuery     $taskQuery,
+        private readonly UpdateTaskUseCase $updateTask,
+        private readonly DbalUserQuery     $userQuery
     )
     {
     }
 
     #[Route('/task', name: 'task_index')]
-    public function index(UserInterface $user, UserRepository $userRepository): Response
+    public function index(): Response
     {
-
-        return $this->render(
-            'to-do-list/task-list.html.twig',
-            [
-                'taskList' => $this->taskRepository->findBy(
-                    [
-                        'user' => $userRepository->findBy(
-                            [
-                                'email' => $user->getUserIdentifier()
-                            ]
-                        )
-                    ]
-                )
-            ]
-        );
+        $email = $this->getUser()->getUserIdentifier();
+        try {
+            return $this->render(
+                'to-do-list/task-list.html.twig',
+                [
+                    'taskList' => $this->taskQuery->findAllByUserEmail($email),
+                    'userId' => $this->userQuery->findIdByEmail($email),
+                ]
+            );
+        } catch (Exception $exception) {
+            return $this->render('exception-site.html.twig', ['str' => $exception->getMessage()]);
+        }
     }
 
 
-    #[Route('/delete/{id}', name: 'task_delete', requirements: ['id' => '\d+'])]
-    public function delete($id): Response
+    #[Route('/delete/{userId}/{taskId}', name: 'task_delete', requirements: ['taskId' => '\d+'])]
+    public function delete(int $userId,int $taskId): Response
     {
-        $this->taskRepository->removeById($id);
+        try {
+            $this->permissionToResource($taskId, $userId);
+
+        } catch (Exception $exception) {
+            return $this->render('exception-site.html.twig', ['str' => $exception->getMessage()]);
+        }
+
+        $this->taskRepository->removeById($taskId);
         return $this->redirectToRoute('task_index');
     }
 
@@ -59,15 +69,13 @@ class TaskController extends AbstractController
     #[Route('/add/', name: 'task_add', methods: ['GET'])]
     public function add(): Response
     {
-
         $form = $this->createForm(
-            TaskType::class,
-            new Task(), // todo is that good
+            TaskChangeType::class,
+            new TaskChange(),
             [
                 'action' => $this->generateUrl('task_addPost'),
             ]
         );
-
 
         return $this->render(
             'to-do-list/task-form.html.twig',
@@ -79,78 +87,104 @@ class TaskController extends AbstractController
     }
 
     #[Route('/add/', name: 'task_addPost', methods: ['POST'])]
-    public function addPost(Request $request, UserInterface $user, UserRepository $userRepository): Response
+    public function addPost(Request $request): Response
     {
-        try {
-            $task = new Task();
-
-            $form = $this->createForm(
-                TaskType::class,
-                $task
-            );
-
-
-            $form->handleRequest($request);
-
-            $task->setUser(
-                $userRepository->findOneBy(
-                    ['email' => $user->getUserIdentifier()]
-                )
-            );
-
-            $this->taskRepository->add($task, true);
-
-            return $this->redirectToRoute('task_index');
-        } catch (Exception $e) {
-            return $this->render('exception-site.html.twig', ['exception' => $e]);
-        }
-    }
-
-    #[Route('/update/{id}', name: "task_update", methods: ['GET'])]
-    public function update($id): Response
-    {
-
-        try {
-            $form = $this->createForm(
-                TaskType::class,
-                $this->taskRepository->find($id), // query
-                [
-                    'action' => $this->generateUrl('task_updatePost', ['id' => $id]),
-                ]
-            );
-
-
-            return $this->render(
-                'to-do-list/task-form.html.twig',
-                [
-                    'form' => $form->createView(),
-                    'data' => ['id' => $id],
-                    'destination' => 'task_updatePost'
-                ]
-            );
-        } catch (Exception $e) {
-            return $this->render('exception-site.html.twig', ['exception' => $e]);
-        }
-    }
-
-    #[Route("/update/{id}", name: 'task_updatePost', methods: ['POST'])]
-    public function updatePost(Request $request, int $id): Response
-    {
-        $task = new Task();
+        $task = new TaskChange();
 
         $form = $this->createForm(
-            TaskType::class,
+            TaskChangeType::class,
             $task
         );
 
         $form->handleRequest($request);
 
         try {
-            $this->taskRepository->update($task, $id);
-        } catch (Exception $e) {
-            return $this->render('exception-site.html.twig', ['exception' => $e]);
+            $task->setUserId(
+                $this->userQuery->findIdByEmail($this->getUser()->getUserIdentifier())
+            );
+        } catch (Exception $exception) {
+            return $this->render('exception-site.html.twig', ['str' => $exception->getMessage()]);
         }
 
+        $this->taskRepository->createFromTaskChange($task);
+
         return $this->redirectToRoute('task_index');
+    }
+
+    #[Route('/update/{userId}/{taskId}', name: "task_update", methods: ['GET'])]
+    public function update(int $userId, int $taskId): Response
+    {
+        try {
+            $this->permissionToResource($taskId, $userId);
+
+            $task = $this->taskQuery->findById($taskId);
+        } catch (Exception $exception) {
+            return $this->render('exception-site.html.twig', ['str' => $exception->getMessage()]);
+        }
+
+        $form = $this->createForm(
+            TaskChangeType::class,
+            $task,
+            ['action' => $this->generateUrl(
+                'task_updatePost',
+                [
+                    'userId' => $userId,
+                    'taskId' => $taskId,
+                ]
+            ),
+            ]
+        );
+
+        return $this->render('to-do-list/task-form.html.twig', [
+            'form' => $form->createView(),
+            'data' => [
+                'userId' => $userId,
+                'taskId' => $taskId,
+            ],
+            'destination' => 'task_updatePost'
+        ]);
+    }
+
+
+    #[Route("/update/{userId}/{taskId}", name: 'task_updatePost', methods: ['POST'])]
+    public function updatePost(Request $request, int $userId, int $taskId): Response
+    {
+        $task = new TaskChange();
+
+        $task->setId($taskId);
+
+        try {
+            $this->permissionToResource($taskId, $userId);
+        } catch (Exception $exception) {
+            return $this->render('exception-site.html.twig', ['str' => $exception]);
+        }
+
+        $form = $this->createForm(TaskChangeType::class, $task);
+
+        $form->handleRequest($request);
+
+        if (!$form->isSubmitted()) {
+            return $this->redirectToRoute('task_index');
+        }
+
+        if (!$form->isValid()) {
+            $this->render('exception-site.html.twig', ['str' => 'Invalid data']);
+        }
+
+        try {
+            $this->updateTask->execute($task);
+
+            return $this->redirectToRoute('task_index');
+        } catch (Exception $exception) {
+            return $this->render('exception-site.html.twig', ['str' => $exception->getMessage()]);
+        }
+    }
+
+    private function permissionToResource(int $taskId, int $userId): bool
+    {
+        if (!$this->taskQuery->isTaskOwner($taskId, $userId)) {
+            throw new Exception('Access denied');
+        }
+        return true;
     }
 }
