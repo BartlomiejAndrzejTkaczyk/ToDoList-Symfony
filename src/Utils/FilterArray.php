@@ -16,6 +16,6 @@ class FilterArray
 
     public static function isFinish(TaskChange $task): bool
     {
-        return $task->isFinish();
+        return $task->isFinish() || $task->getEndDate() < new \DateTimeImmutable();
     }
 }

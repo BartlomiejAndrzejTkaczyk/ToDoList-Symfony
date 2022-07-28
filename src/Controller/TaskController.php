@@ -24,7 +24,7 @@ use Symfony\Component\Routing\Annotation\Route;
 #[IsGranted('ROLE_USER')]
 class TaskController extends AbstractController
 {
-
+    private readonly string $userEmail;
     public function __construct(
         private readonly TaskRepository    $taskRepository,
         private readonly DbalTaskQuery     $taskQuery,
@@ -32,6 +32,7 @@ class TaskController extends AbstractController
         private readonly DbalUserQuery     $userQuery
     )
     {
+
     }
 
     #[Route('/task', name: 'task_index')]
@@ -39,7 +40,6 @@ class TaskController extends AbstractController
     {
         $email = $this->getUser()->getUserIdentifier();
         $taskList = $this->taskQuery->findAllByUserEmail($email);
-
 
         try {
             return $this->render(
@@ -51,18 +51,17 @@ class TaskController extends AbstractController
                 ]
             );
         } catch (Exception $exception) {
-            throw $exception;
+
             return $this->render('exception-site.html.twig', ['str' => $exception->getMessage()]);
         }
     }
 
 
     #[Route('/delete/{userId}/{taskId}', name: 'task_delete', requirements: ['taskId' => '\d+'])]
-    public function delete(int $userId,int $taskId): Response
+    public function delete(int $userId, int $taskId): Response
     {
         try {
-            $this->permissionToResource($taskId, $userId);
-
+            $this->permissionToResource($taskId);
         } catch (Exception $exception) {
             return $this->render('exception-site.html.twig', ['str' => $exception->getMessage()]);
         }
@@ -91,6 +90,7 @@ class TaskController extends AbstractController
             ]
         );
     }
+
 
     #[Route('/add/', name: 'task_addPost', methods: ['POST'])]
     public function addPost(Request $request): Response
@@ -121,7 +121,7 @@ class TaskController extends AbstractController
     public function update(int $userId, int $taskId): Response
     {
         try {
-            $this->permissionToResource($taskId, $userId);
+            $this->permissionToResource($taskId);
 
             $task = $this->taskQuery->findById($taskId);
         } catch (Exception $exception) {
@@ -160,7 +160,7 @@ class TaskController extends AbstractController
         $task->setId($taskId);
 
         try {
-            $this->permissionToResource($taskId, $userId);
+            $this->permissionToResource($taskId);
         } catch (Exception $exception) {
             return $this->render('exception-site.html.twig', ['str' => $exception]);
         }
@@ -186,8 +186,28 @@ class TaskController extends AbstractController
         }
     }
 
-    private function permissionToResource(int $taskId, int $userId): bool
+    #[Route('finish/{taskId}', name: 'task_finish')]
+    public function setTaskAsFinish(int $taskId)
     {
+        try{
+            $this->permissionToResource($taskId);
+        } catch (Exception $exception){
+            return $this->render('exception-site.html.twig', ['str' => $exception]);
+        }
+
+        $task = new TaskChange();
+        $task->setId($taskId);
+        $task->setIsFinish(true);
+
+        $this->updateTask->execute($task);
+
+        return $this->redirectToRoute('task_index');
+    }
+
+    private function permissionToResource(int $taskId): bool
+    {
+        $userId = $this->userQuery->findIdByEmail($this->getUser()->getUserIdentifier());
+
         if (!$this->taskQuery->isTaskOwner($taskId, $userId)) {
             throw new Exception('Access denied');
         }

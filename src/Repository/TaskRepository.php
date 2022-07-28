@@ -44,6 +44,7 @@ class TaskRepository extends ServiceEntityRepository
         $task->setUser(
             $this->userRepository->find($taskChange->getUserId())
         );
+        $task->setIsFinish($taskChange->isFinish());
 
         $this->add($task, true);
     }

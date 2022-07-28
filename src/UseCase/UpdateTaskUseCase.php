@@ -18,12 +18,21 @@ class UpdateTaskUseCase
     {
         $oldTask = $this->taskRepository->find($newTask->getId());
 
-        if(!$oldTask){
+        if (!$oldTask) {
             throw new NotFoundHttpException('Not found task with id = ' . $newTask->getId());
         }
 
-        $oldTask->setEndDate($newTask->getEndDate());
-        $oldTask->setName($newTask->getName());
+        if ($newTask->getEndDate()) {
+            $oldTask->setEndDate($newTask->getEndDate());
+        }
+
+        if ($newTask->getEndDate())
+            $oldTask->setEndDate($newTask->getEndDate());
+        if ($newTask->getName() != null)
+            $oldTask->setName($newTask->getName());
+        if ($newTask->isFinish())
+            $oldTask->setIsFinish($newTask->isFinish());
+
 
         $this->taskRepository->flush();
     }

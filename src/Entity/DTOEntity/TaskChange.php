@@ -4,16 +4,17 @@ namespace App\Entity\DTOEntity;
 
 use App\Entity\DatabaseEntity\Task;
 use App\Utils\TaskStatus;
+use mysql_xdevapi\TableSelect;
 
 class TaskChange
 {
-    private int $id;
-    private string $name;
-    private \DateTimeImmutable $endDate;
-    private bool $isFinish;
+    private ?int $id = null;
+    private ?string $name = null;
+    private ?\DateTimeImmutable $endDate = null;
+    private ?bool $isFinish = null;
 
-    private int $userId;
-    private string $email;
+    private ?int $userId = null;
+    private ?string $email = null;
 
 
 
@@ -31,126 +32,112 @@ class TaskChange
         $task->setIsFinish(
             $dbal['is_finish']
         );
+
         return $task;
     }
 
     public function __construct()
     {
+        $this->setIsFinish(false);
         $this->setEndDate(new \DateTimeImmutable());
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    public function getUserId(): int
-    {
-        return $this->userId;
-    }
-
-    /**
-     * @param int $userId
-     */
-    public function setUserId(int $userId): void
-    {
-        $this->userId = $userId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getEmail(): string
-    {
-        return $this->email;
-    }
-
-    /**
-     * @param string $email
-     */
-    public function setEmail(string $email): void
-    {
-        $this->email = $email;
-    }
-
-    /**
-     * @return int
-     */
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
 
     /**
-     * @param int $id
+     * @param int|null $id
      */
-    public function setId(int $id): void
+    public function setId(?int $id): void
     {
         $this->id = $id;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->name;
     }
 
     /**
-     * @param string $name
+     * @param string|null $name
      */
-    public function setName(string $name): void
+    public function setName(?string $name): void
     {
         $this->name = $name;
     }
 
     /**
-     * @return \DateTimeImmutable
+     * @return \DateTimeImmutable|null
      */
-    public function getEndDate(): \DateTimeImmutable
+    public function getEndDate(): ?\DateTimeImmutable
     {
         return $this->endDate;
     }
 
     /**
-     * @param \DateTimeImmutable $endDate
+     * @param \DateTimeImmutable|null $endDate
      */
-    public function setEndDate(\DateTimeImmutable $endDate): void
+    public function setEndDate(?\DateTimeImmutable $endDate): void
     {
         $this->endDate = $endDate;
     }
 
-
     /**
-     * @return TaskStatus
+     * @return bool|null
      */
-    public function getStatus(): TaskStatus
-    {
-        return $this->status;
-    }
-
-    /**
-     * @param TaskStatus $status
-     */
-    public function setStatus(TaskStatus $status): void
-    {
-        $this->status = $status;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isFinish(): bool
+    public function IsFinish(): ?bool
     {
         return $this->isFinish;
     }
 
     /**
-     * @param bool $isFinish
+     * @param bool|null $isFinish
      */
-    public function setIsFinish(bool $isFinish): void
+    public function setIsFinish(?bool $isFinish): void
     {
         $this->isFinish = $isFinish;
     }
+
+    /**
+     * @return int|null
+     */
+    public function getUserId(): ?int
+    {
+        return $this->userId;
+    }
+
+    /**
+     * @param int|null $userId
+     */
+    public function setUserId(?int $userId): void
+    {
+        $this->userId = $userId;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    /**
+     * @param string|null $email
+     */
+    public function setEmail(?string $email): void
+    {
+        $this->email = $email;
+    }
+
 
 
 

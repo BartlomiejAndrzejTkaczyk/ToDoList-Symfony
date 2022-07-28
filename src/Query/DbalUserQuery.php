@@ -47,4 +47,6 @@ class DbalUserQuery
 
         return $qb->executeQuery()->fetchOne();
     }
+
+
 }
