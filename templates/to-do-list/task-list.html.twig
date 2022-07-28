@@ -9,11 +9,11 @@
             {% for activeTask in activeTaskList %}
                 <li class="task-list">
                     {{ activeTask.name }} - end: {{ activeTask.endDate|date("d/m/Y") }}
-                    <a class="delete" href="{{ path('task_delete', {userId: userId, taskId: activeTask.id}) }}">
+                    <a class="delete" href="{{ path('task_delete', {taskId: activeTask.id}) }}">
                         <span class="material-symbols-outlined">delete</span>
                     </a>
 
-                    <a class="update" href="{{ path('task_update', {userId: userId, taskId: activeTask.id}) }}">
+                    <a class="update" href="{{ path('task_update', {taskId: activeTask.id}) }}">
                         <span class="material-symbols-outlined">edit</span>
                     </a>
 
@@ -32,16 +32,16 @@
             {% for finishTask in finishTaskList %}
                 <li class="task-list">
                     {{ finishTask.name }} - end: {{ finishTask.endDate|date("d/m/Y") }}
-                    <a class="delete" href="{{ path('task_delete', {userId: userId, taskId: finishTask.id}) }}">
+                    <a class="delete" href="{{ path('task_delete', {taskId: finishTask.id}) }}">
                         <span class="material-symbols-outlined">delete</span>
                     </a>
 
-                    <a class="update" href="{{ path('task_update', {userId: userId, taskId: finishTask.id}) }}">
+                    <a class="update" href="{{ path('task_update', {taskId: finishTask.id}) }}">
                         <span class="material-symbols-outlined">edit</span>
                     </a>
 
                     {% if finishTask.isFinish == false %}
-                        <a href="{{ path('task_update', {userId: userId, taskId: finishTask.id}) }}">
+                        <a href="{{ path('task_update', {taskId: finishTask.id}) }}">
                             <span>second try</span>
                         </a>
                     {% endif %}

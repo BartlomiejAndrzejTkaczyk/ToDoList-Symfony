@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Entity\DTOEntity\TaskForEmail;
+use App\Entity\DTOEntity\TasksForEmail;
 use App\Query\DbalTaskQuery;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -29,13 +29,14 @@ class AutomaticSendingEmail extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        /** @var TaskForEmail $item */
-        foreach ($this->taskQuery->getCommingTaskWithUser() as $item) {
+        /** @var TasksForEmail $item */
+        foreach ($this->taskQuery->getComingTaskWithUser() as $item) {
             $mailText = '';
+            $nr = 1;
             foreach ($item->getTasksName() as $task) {
-                $mailText .=  $task;
+                $mailText .=$nr . ') ' . $task . "\n";
+                $nr++;
             }
-            $mailText .= "\n";
             $this->sendMail($item->getEmail(), $mailText);
         }
         return Command::SUCCESS;

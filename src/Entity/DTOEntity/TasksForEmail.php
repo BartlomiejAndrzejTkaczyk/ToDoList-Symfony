@@ -2,7 +2,7 @@
 
 namespace App\Entity\DTOEntity;
 
-class TaskForEmail
+class TasksForEmail
 {
     private string $email;
     /** @var string[] $tasksName */
@@ -10,15 +10,18 @@ class TaskForEmail
 
     public static function createFromDbal($dbal): array
     {
-        /** @var TaskForEmail[] $res */
+        /** @var TasksForEmail[] $res */
         $res = [];
+
         foreach ($dbal as $item) {
             $key = $item['email'];
             $value = $item['name'];
+
             if (!array_key_exists($key, $res)) {
-                $res[$key] = new TaskForEmail();
+                $res[$key] = new TasksForEmail();
                 $res[$key]->email = $key;
             }
+
             $res[$key]->tasksName[] = $value;
         }
 
@@ -56,10 +59,4 @@ class TaskForEmail
     {
         $this->tasksName = $tasksName;
     }
-
-    public function getAllTaskAsHTMLList(): string
-    {
-
-    }
-
 }

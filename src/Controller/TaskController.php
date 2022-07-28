@@ -16,6 +16,7 @@ use App\Utils\FilterArray;
 use Exception;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -39,9 +40,9 @@ class TaskController extends AbstractController
     public function index(): Response
     {
         $email = $this->getUser()->getUserIdentifier();
-        $taskList = $this->taskQuery->findAllByUserEmail($email);
 
         try {
+            $taskList = $this->taskQuery->findAllByUserEmail($email);
             return $this->render(
                 'to-do-list/task-list.html.twig',
                 [
@@ -57,8 +58,8 @@ class TaskController extends AbstractController
     }
 
 
-    #[Route('/delete/{userId}/{taskId}', name: 'task_delete', requirements: ['taskId' => '\d+'])]
-    public function delete(int $userId, int $taskId): Response
+    #[Route('/delete/{taskId}', name: 'task_delete', requirements: ['taskId' => '\d+'])]
+    public function delete(int $taskId): Response
     {
         try {
             $this->permissionToResource($taskId);
@@ -117,7 +118,7 @@ class TaskController extends AbstractController
         return $this->redirectToRoute('task_index');
     }
 
-    #[Route('/update/{userId}/{taskId}', name: "task_update", methods: ['GET'])]
+    #[Route('/update/{taskId}', name: "task_update", methods: ['GET'])]
     public function update(int $userId, int $taskId): Response
     {
         try {
@@ -152,8 +153,8 @@ class TaskController extends AbstractController
     }
 
 
-    #[Route("/update/{userId}/{taskId}", name: 'task_updatePost', methods: ['POST'])]
-    public function updatePost(Request $request, int $userId, int $taskId): Response
+    #[Route("/update/{taskId}", name: 'task_updatePost', methods: ['POST'])]
+    public function updatePost(Request $request, int $taskId): Response
     {
         $task = new TaskChange();
 
@@ -187,7 +188,7 @@ class TaskController extends AbstractController
     }
 
     #[Route('finish/{taskId}', name: 'task_finish')]
-    public function setTaskAsFinish(int $taskId)
+    public function setTaskAsFinish(int $taskId): RedirectResponse|Response
     {
         try{
             $this->permissionToResource($taskId);
@@ -204,13 +205,12 @@ class TaskController extends AbstractController
         return $this->redirectToRoute('task_index');
     }
 
-    private function permissionToResource(int $taskId): bool
+    private function permissionToResource(int $taskId): void
     {
         $userId = $this->userQuery->findIdByEmail($this->getUser()->getUserIdentifier());
 
         if (!$this->taskQuery->isTaskOwner($taskId, $userId)) {
             throw new Exception('Access denied');
         }
-        return true;
     }
 }

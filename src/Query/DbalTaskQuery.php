@@ -5,7 +5,7 @@ namespace App\Query;
 use App\Entity\DTOEntity\TaskChange;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
-use App\Entity\DTOEntity\TaskForEmail;
+use App\Entity\DTOEntity\TasksForEmail;
 
 class DbalTaskQuery
 {
@@ -88,9 +88,9 @@ class DbalTaskQuery
         return $tasks;
     }
 
-    public function getCommingTaskWithUser(): array
+    public function getComingTaskWithUser(): array
     {
-        /** @var TaskForEmail[] $res */
+        /** @var TasksForEmail[] $res */
         $res = [];
 
         $qb = $this->connection->createQueryBuilder();
@@ -103,14 +103,24 @@ class DbalTaskQuery
             ->from('User', 'u')
             ->innerJoin('u', 'Task', 't', 'u.id = t.user_id')
             ->where(
-                $qb->expr()->lte('t.end_date', $today->modify('+3 day')->format("'Y-m-d H:i:s'"))
+                $qb->expr()->lte(
+                    't.end_date',
+                    $today
+                        ->modify('+3 day')
+                        ->format("'Y-m-d H:i:s'")
+                )
             )
             ->andWhere(
-                $qb->expr()->gte('t.end_date', $today->format("'Y-m-d H:i:s'"))
+                $qb->expr()->gte(
+                    't.end_date',
+                    $today
+                        ->format("'Y-m-d H:i:s'")
+                )
             )
+            ->andWhere($qb->expr()->eq('t.is_finish', '0'))
             ->orderBy('u.email');
 
-        return TaskForEmail::createFromDbal( $qb->executeQuery()->fetchAllAssociative());
+        return TasksForEmail::createFromDbal( $qb->executeQuery()->fetchAllAssociative());
     }
 
 }

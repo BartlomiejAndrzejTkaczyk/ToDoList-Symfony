@@ -3,6 +3,7 @@
 namespace App\Query;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 
 class DbalUserQuery
 {
@@ -14,7 +15,7 @@ class DbalUserQuery
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     public function findEmailOwner(int $userId): string
     {
@@ -31,7 +32,7 @@ class DbalUserQuery
     }
 
     /**
-     * @throws \Doctrine\DBAL\Exception
+     * @throws Exception
      */
     public function findIdByEmail(string $email): int
     {
