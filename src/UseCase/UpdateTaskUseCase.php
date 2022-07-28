@@ -26,13 +26,13 @@ class UpdateTaskUseCase
             $oldTask->setEndDate($newTask->getEndDate());
         }
 
-        if ($newTask->getEndDate())
-            $oldTask->setEndDate($newTask->getEndDate());
-        if ($newTask->getName() != null)
+        if ($newTask->getName()) {
             $oldTask->setName($newTask->getName());
-        if ($newTask->isFinish())
-            $oldTask->setIsFinish($newTask->isFinish());
+        }
 
+        if ($newTask->isFinish()) {
+            $oldTask->finish();
+        }
 
         $this->taskRepository->flush();
     }

@@ -4,11 +4,14 @@ namespace App\Command;
 
 use App\Entity\DTOEntity\TasksForEmail;
 use App\Query\DbalTaskQuery;
+use PHPUnit\Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mime\Email;
 
@@ -20,7 +23,8 @@ class AutomaticSendingEmail extends Command
 
 
     public function __construct(
-        private readonly DbalTaskQuery $taskQuery
+        private readonly DbalTaskQuery   $taskQuery,
+        private readonly MailerInterface $mailer
     )
     {
         parent::__construct(self::$defaultName);
@@ -34,7 +38,7 @@ class AutomaticSendingEmail extends Command
             $mailText = '';
             $nr = 1;
             foreach ($item->getTasksName() as $task) {
-                $mailText .=$nr . ') ' . $task . "\n";
+                $mailText .= $nr . ') ' . $task . "\n";
                 $nr++;
             }
             $this->sendMail($item->getEmail(), $mailText);
@@ -43,20 +47,19 @@ class AutomaticSendingEmail extends Command
     }
 
 
-
     private function sendMail(string $mail, string $task)
     {
-        $transport = Transport::fromDsn($_ENV['MAILER_DSN']);
-
         $email = (new Email())
             ->from('support@example.com')
             ->to($mail)
             ->subject('Task in next 3 days')
             ->text($task);
 
-        $mailer = new Mailer($transport);
-
-        $mailer->send($email);
+        try {
+            $this->mailer->send($email);
+        } catch (TransportExceptionInterface $e) {
+            dd($e);
+        }
     }
 
     protected function configure(): void

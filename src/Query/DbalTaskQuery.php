@@ -61,9 +61,6 @@ class DbalTaskQuery
     {
         $qb = $this->connection->createQueryBuilder();
 
-
-        $userId = $this->userQuery->findIdByEmail($email);
-
         $tasksDbal = $qb
             ->select('t.id')
             ->addSelect('t.name')
@@ -71,10 +68,8 @@ class DbalTaskQuery
             ->addSelect('t.user_id')
             ->addSelect('t.is_finish')
             ->from('task', 't')
-            ->where(
-                $qb->expr()->eq('t.user_id', ':userId')
-            )
-            ->setParameter('userId', $userId)
+            ->innerJoin('t','User', 'u', 'u.email = :userEmail AND u.id = t.user_id')
+            ->setParameter('userEmail', $email)
             ->executeQuery()
             ->fetchAllAssociative();
 

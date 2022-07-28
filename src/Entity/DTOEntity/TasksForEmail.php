@@ -8,24 +8,24 @@ class TasksForEmail
     /** @var string[] $tasksName */
     private array $tasksName;
 
-    public static function createFromDbal($dbal): array
+    public static function createFromDbal(array $dbal): array
     {
-        /** @var TasksForEmail[] $res */
-        $res = [];
+        /** @var TasksForEmail[] $result */
+        $result = [];
 
         foreach ($dbal as $item) {
-            $key = $item['email'];
-            $value = $item['name'];
+            $email = $item['email'];
+            $name = $item['name'];
 
-            if (!array_key_exists($key, $res)) {
-                $res[$key] = new TasksForEmail();
-                $res[$key]->email = $key;
+            if (!array_key_exists($email, $result)) {
+                $result[$email] = new TasksForEmail();
+                $result[$email]->email = $email;
             }
 
-            $res[$key]->tasksName[] = $value;
+            $result[$email]->tasksName[] = $name;
         }
 
-        return $res;
+        return $result;
     }
 
     /**

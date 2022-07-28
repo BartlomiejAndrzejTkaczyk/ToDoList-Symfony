@@ -6,7 +6,7 @@ use App\Entity\DatabaseEntity\Task;
 use App\Utils\TaskStatus;
 use mysql_xdevapi\TableSelect;
 
-class TaskChange
+class TaskChange // todo rozbij na dwa osobne klasy
 {
     private ?int $id = null;
     private ?string $name = null;

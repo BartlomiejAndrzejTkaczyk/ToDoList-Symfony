@@ -113,4 +113,9 @@ class Task
 
         return $this;
     }
+
+    public function finish(): void
+    {
+        $this->setIsFinish(true);
+    }
 }

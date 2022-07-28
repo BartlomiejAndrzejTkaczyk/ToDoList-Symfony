@@ -3,20 +3,15 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-
-use App\Entity\DatabaseEntity\Task;
 use App\Entity\DTOEntity\TaskChange;
-use App\Form\TaskType;
 use App\Form\TaskChangeType;
 use App\Query\DbalTaskQuery;
 use App\Query\DbalUserQuery;
 use App\Repository\TaskRepository;
 use App\UseCase\UpdateTaskUseCase;
-use App\Utils\FilterArray;
 use Exception;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -26,6 +21,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class TaskController extends AbstractController
 {
     private readonly string $userEmail;
+
     public function __construct(
         private readonly TaskRepository    $taskRepository,
         private readonly DbalTaskQuery     $taskQuery,
@@ -36,43 +32,45 @@ class TaskController extends AbstractController
 
     }
 
-    #[Route('/task', name: 'task_index')]
+    #[Route('/task', name: 'task_index', methods: ['GET'])]
     public function index(): Response
     {
         $email = $this->getUser()->getUserIdentifier();
 
         try {
-            $taskList = $this->taskQuery->findAllByUserEmail($email);
-            return $this->render(
-                'to-do-list/task-list.html.twig',
-                [
-                    'activeTaskList' => array_filter($taskList, 'App\Utils\FilterArray::isActive'),
-                    'finishTaskList' => array_filter($taskList, 'App\Utils\FilterArray::isFinish'),
-                    'userId' => $this->userQuery->findIdByEmail($email),
-                ]
-            );
+            $taskList = $this->taskQuery->findAllByUserEmail($email); // todo zwracaj posortowane obiekty
         } catch (Exception $exception) {
-
             return $this->render('exception-site.html.twig', ['str' => $exception->getMessage()]);
         }
+
+        return $this->render('to-do-list/task-list.html.twig', [ // todo standarody zapis dla symfony
+            'activeTaskList' => array_filter($taskList, 'App\Utils\FilterArray::isActive'),
+            'finishTaskList' => array_filter($taskList, 'App\Utils\FilterArray::isFinish'),
+        ]);
     }
 
 
-    #[Route('/delete/{taskId}', name: 'task_delete', requirements: ['taskId' => '\d+'])]
+    #[Route('/delete/{taskId}', name: 'task_delete', requirements: ['taskId' => '\d+'], methods: ['DELETE'])]
     public function delete(int $taskId): Response
     {
         try {
-            $this->permissionToResource($taskId);
+            $this->checkPermission($taskId);
         } catch (Exception $exception) {
             return $this->render('exception-site.html.twig', ['str' => $exception->getMessage()]);
         }
 
-        $this->taskRepository->removeById($taskId);
+        $task = $this->taskRepository->find($taskId);
+
+        if(!$task){
+            return $this->render('exception-site.html.twig', ['str' => 'Not found']);
+        }
+
+        $this->taskRepository->remove($task, true);
         return $this->redirectToRoute('task_index');
     }
 
 
-    #[Route('/add/', name: 'task_add', methods: ['GET'])]
+    #[Route('/add/', name: 'task_add', methods: ['GET'])] // todo złącz
     public function add(): Response
     {
         $form = $this->createForm(
@@ -98,10 +96,7 @@ class TaskController extends AbstractController
     {
         $task = new TaskChange();
 
-        $form = $this->createForm(
-            TaskChangeType::class,
-            $task
-        );
+        $form = $this->createForm(TaskChangeType::class, $task);
 
         $form->handleRequest($request);
 
@@ -113,16 +108,16 @@ class TaskController extends AbstractController
             return $this->render('exception-site.html.twig', ['str' => $exception->getMessage()]);
         }
 
-        $this->taskRepository->createFromTaskChange($task);
+        $this->taskRepository->createFromTaskChange($task); //todo zrób fabrykę
 
         return $this->redirectToRoute('task_index');
     }
 
     #[Route('/update/{taskId}', name: "task_update", methods: ['GET'])]
-    public function update(int $userId, int $taskId): Response
+    public function update(int $taskId): Response
     {
         try {
-            $this->permissionToResource($taskId);
+            $this->checkPermission($taskId);
 
             $task = $this->taskQuery->findById($taskId);
         } catch (Exception $exception) {
@@ -135,7 +130,6 @@ class TaskController extends AbstractController
             ['action' => $this->generateUrl(
                 'task_updatePost',
                 [
-                    'userId' => $userId,
                     'taskId' => $taskId,
                 ]
             ),
@@ -145,7 +139,6 @@ class TaskController extends AbstractController
         return $this->render('to-do-list/task-form.html.twig', [
             'form' => $form->createView(),
             'data' => [
-                'userId' => $userId,
                 'taskId' => $taskId,
             ],
             'destination' => 'task_updatePost'
@@ -161,7 +154,7 @@ class TaskController extends AbstractController
         $task->setId($taskId);
 
         try {
-            $this->permissionToResource($taskId);
+            $this->checkPermission($taskId);
         } catch (Exception $exception) {
             return $this->render('exception-site.html.twig', ['str' => $exception]);
         }
@@ -188,11 +181,11 @@ class TaskController extends AbstractController
     }
 
     #[Route('finish/{taskId}', name: 'task_finish')]
-    public function setTaskAsFinish(int $taskId): RedirectResponse|Response
+    public function finishTask(int $taskId): Response
     {
-        try{
-            $this->permissionToResource($taskId);
-        } catch (Exception $exception){
+        try {
+            $this->checkPermission($taskId);
+        } catch (Exception $exception) {
             return $this->render('exception-site.html.twig', ['str' => $exception]);
         }
 
@@ -205,7 +198,7 @@ class TaskController extends AbstractController
         return $this->redirectToRoute('task_index');
     }
 
-    private function permissionToResource(int $taskId): void
+    private function checkPermission(int $taskId): void
     {
         $userId = $this->userQuery->findIdByEmail($this->getUser()->getUserIdentifier());
 
